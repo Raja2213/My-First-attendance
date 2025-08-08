@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        
+        <h1>Admin Dashboard</h1>
+        <p class="lead">All Attendance Records</p>
+
+        <div class="d-flex justify-content-between mb-4">
+            <div>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Admin View</a>
+                <a href="{% url 'home' %}" class="btn btn-secondary">Employee View</a>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h4>Filter Records</h4>
+            <form method="GET" action="{% url 'admin_dashboard' %}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="date_filter" class="form-label">Date:</label>
+                        <input type="date" name="date_filter" id="date_filter" class="form-control" value="{{ date_filter }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="project_filter" class="form-label">Project:</label>
+                        <select name="project_filter" id="project_filter" class="form-select">
+                            <option value="">All Projects</option>
+                            {% for project in projects %}
+                                <option value="{{ project }}" {% if project == project_filter %}selected{% endif %}>{{ project }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-info">Apply Filter</button>
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Reset</a>
+                        <a href="{% url 'export_attendance' %}?date_filter={{ date_filter }}&project_filter={{ project_filter }}" class="btn btn-success">Export to CSV</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {% if attendance_records %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Date</th>
+                        <th>Project</th>
+                        <th>Shift</th>
+                        <th>Time In</th>
+                        <th>Time Out</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.user.username }}</td>
+                        <td>{{ record.date|date:"M. j, Y" }}</td>
+                        <td>{{ record.project_name }}</td>
+                        <td>{{ record.shift }}</td>
+                        <td>{{ record.time_in|date:"P"|default:"N/A" }}</td>
+                        <td>{{ record.time_out|date:"P"|default:"Still Timed In" }}</td>
+                        <td>
+                            <a href="{% url 'edit_attendance' pk=record.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{% url 'delete_attendance' pk=record.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this record?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No attendance records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No attendance records found.</p>
+        {% endif %}
+    </div>
+{% endblock %}

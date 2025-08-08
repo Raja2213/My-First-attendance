@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">Daily Attendance</h1>
+
+            {% if user_attendance %}
+                {% if user_attendance.time_out %}
+                    <div class="alert alert-success">
+                        You have already completed your attendance for today.
+                        <br>
+                        Time In: {{ user_attendance.time_in|date:"H:i" }} | Time Out: {{ user_attendance.time_out|date:"H:i" }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        You are currently timed in.
+                        <br>
+                        Time In: {{ user_attendance.time_in|date:"H:i" }}
+                    </div>
+                    <form action="{% url 'time_out' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg">Time Out</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#timeInModal">
+                    Time In
+                </button>
+            {% endif %}
+
+            {% if request.user.is_superuser or request.user.is_staff %}
+            <div class="mt-4">
+                <a href="/admin/attendance/attendance/" class="btn btn-primary btn-lg">
+                    View Attendance Records
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="timeInModal" tabindex="-1" aria-labelledby="timeInModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="timeInModalLabel">Start Your Day</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'time_in' %}" method="post">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" value="{{ user.username }}" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email ID</label>
+                <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+            </div>
+            <div class="mb-3">
+                {{ form.project_name.label_tag }}
+                {{ form.project_name }}
+            </div>
+            <div class="mb-3">
+                {{ form.shift.label_tag }}
+                {{ form.shift }}
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="text" class="form-control" id="date" value="{{ today|date:"Y-m-d" }}" readonly>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save and Time In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
